@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 #include <sfml/Graphics.hpp>
 #include "json.hpp"
@@ -307,6 +308,71 @@ int main()
 				{
 					--routeId;
 					loadclimb(data, face, &routeId, route);
+				}
+				else if (e.key.code == sf::Keyboard::B)
+				{
+					// this gonna do a whole lot of stuff
+					std::cout << "Creating imgs :) \n";
+					std::cout << "Size: " << out.size() << "\n";
+
+					unsigned int count = 0;
+
+					sf::Image img;
+					for (json::iterator it = out.begin(); it != out.end(); ++it) 
+					{
+						std::cout << "\rProgress: " << (100 * ++count / out.size()) << "%          ";
+
+						std::string key = std::string(it.key().c_str());
+						long keyl = std::atol(key.c_str());
+						if (!std::filesystem::exists("boxes/" + key + ".jpg"))
+						{
+							// create img, requires a lot of ass
+							bool fin = false;
+							for (auto& wall : data["holds"])
+							{
+								for (auto& hold : wall["holds"]) 
+								{
+
+									if (hold["id"].get<long>() == keyl)
+									{
+										// now do the cropping
+										sf::VertexArray tmpva;
+										std::stringstream ss(hold["polygonStr"].get<std::string>());
+										for (std::string token; ss >> token;)
+										{
+											std::istringstream iss(token);
+											std::string t;
+											float v[2] = { 0.f, 0.f };
+											int i = 0;
+											while (std::getline(iss, t, ',')) {
+												v[i++] = std::stof(t);
+											}
+											tmpva.append(sf::Vertex{ {v[0], v[1]}, sf::Color::Red });
+										}
+										tmpva.append(tmpva[0]);
+
+										img.loadFromFile("data/imgs/" + wall["face"].get<std::string>() + ".jpg");
+										sf::Image box;
+										box.create(tmpva.getBounds().width, tmpva.getBounds().height);
+										for (unsigned int y = 0; y < box.getSize().y; ++y)
+										{
+											for (unsigned int x = 0; x < box.getSize().x; ++x)
+											{
+												box.setPixel(x, y, img.getPixel(tmpva.getBounds().left + x, tmpva.getBounds().top + y));
+											}
+										}
+										box.saveToFile("boxes/" + key + ".jpg");
+									}
+									
+								}
+								if (fin)
+									break;
+							}
+							
+						}
+
+					}
+					std::cout << "\n";
 				}
 
 				if (next) {
