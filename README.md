@@ -27,6 +27,7 @@ Mousewheel to zoom
 H = print current label for hold
 P = print current label count
 R = toggle between showing a hold or showing a route (was just for the presentation)
+B = Creating pictures of bounding boxes of all labelled holds
 ```
 NOTE: only first 5 are currently being classified, so ignore 6-0.
 
